@@ -1,71 +1,69 @@
-import { ChatContainer, MainContainer, Message, MessageInput, MessageList, MessageModel } from "@chatscope/chat-ui-kit-react";
+import {
+  ChatContainer,
+  MainContainer,
+  Message,
+  MessageInput,
+  MessageList,
+  MessageModel,
+} from "@chatscope/chat-ui-kit-react";
 import { useState } from "react";
 import { getOpenAIResponse } from "./services/chat.service";
 
-
 export const Chat = () => {
-  const [currentText, setCurrentText] = useState("");
-
   const [messages, setMessages] = useState<MessageModel[]>([]);
 
-  const handleKeyDown = async (e: any) => {
+  const handleSend = async (text: string) => {
     try {
-      if (e.key === "Enter") {
-        if (!currentText) return;
-        setCurrentText("");
-        const newMessages: MessageModel[] = [
-          {
-            message: currentText,
-            sentTime: "just now",
-            sender: "Me",
-            direction: "outgoing",
-            position: "normal"
-          }
-        ];
-        const res = await getOpenAIResponse(currentText);
-        newMessages.push({
-          message: res.data.text,
+      if (!text) return;
+      const newMessages: MessageModel[] = [
+        {
+          message: text,
           sentTime: "just now",
-          sender: "ChatGPT",
-          direction: "incoming",
-          position: "normal"
-        });
+          sender: "Me",
+          direction: "outgoing",
+          position: "normal",
+        },
+      ];
+      setMessages([...messages, ...newMessages]);
+      const res = await getOpenAIResponse(text);
+      newMessages.push({
+        message: res.data.text.trim(),
+        sentTime: "just now",
+        sender: "ChatGPT",
+        direction: "incoming",
+        position: "normal",
+      });
 
-        setMessages([...messages, ...newMessages]);
-      }
+      setMessages([...messages, ...newMessages]);
     } catch (error: any) {
       console.log(error);
     }
-  }
+  };
 
   return (
-    <div className="p-4 gap-4" style={{
-      height: 'calc(100vh - 20px)'
-    }}>
+    <div
+      className="gap-4 flex flex-col justify-between"
+      style={{
+        height: "calc(100vh - 20px)",
+      }}
+    >
+      <h2 className="font-bold">Chat GPT demo</h2>
       <div className="relative h-full">
         <MainContainer>
           <ChatContainer>
             <MessageList>
-              {
-                messages.map(message => {
-                  return (
-                    <Message
-                      key={message.message}
-                      model={message}
-                    />
-                  )
-                })
-              }
+              {messages.map((message) => {
+                return <Message key={message.message} model={message} />;
+              })}
             </MessageList>
             <MessageInput
               placeholder="Type message here"
-              value={currentText}
-              onChange={(html, text) => setCurrentText(text)}
-              onKeyDown={handleKeyDown}
+              onSend={(html, text) => handleSend(text)}
+              attachDisabled
             />
           </ChatContainer>
         </MainContainer>
       </div>
     </div>
-  )
-}
+  );
+};
