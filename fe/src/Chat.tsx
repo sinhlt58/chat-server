@@ -44,7 +44,7 @@ export const Chat = () => {
     <div
       className="gap-4 flex flex-col justify-between"
       style={{
-        height: "calc(100vh - 20px)",
+        height: "calc(100vh - 60px)",
       }}
     >
       <h2 className="font-bold">Chat GPT demo</h2>
