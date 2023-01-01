@@ -5,16 +5,24 @@ import {
   MessageInput,
   MessageList,
   MessageModel,
+  TypingIndicator,
 } from "@chatscope/chat-ui-kit-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { getOpenAIResponse } from "./services/chat.service";
 
 export const Chat = () => {
   const [messages, setMessages] = useState<MessageModel[]>([]);
+  const inputRef = useRef(null);
+  const [msgInputValue, setMsgInputValue] = useState("");
+
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleSend = async (text: string) => {
     try {
-      if (!text) return;
+      if (!text || isProcessing) return;
+      console.log("process");
+      setIsProcessing(true);
+      setMsgInputValue("");
       const newMessages: MessageModel[] = [
         {
           message: text,
@@ -37,6 +45,8 @@ export const Chat = () => {
       setMessages([...messages, ...newMessages]);
     } catch (error: any) {
       console.log(error);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -51,7 +61,13 @@ export const Chat = () => {
       <div className="relative h-full">
         <MainContainer>
           <ChatContainer>
-            <MessageList>
+            <MessageList
+              typingIndicator={
+                isProcessing ? (
+                  <TypingIndicator content="ChatGPT is typing" />
+                ) : null
+              }
+            >
               {messages.map((message) => {
                 return <Message key={message.message} model={message} />;
               })}
@@ -60,6 +76,10 @@ export const Chat = () => {
               placeholder="Type message here"
               onSend={(html, text) => handleSend(text)}
               attachDisabled
+              ref={inputRef}
+              value={msgInputValue}
+              onChange={setMsgInputValue}
+              disabled={isProcessing}
             />
           </ChatContainer>
         </MainContainer>
